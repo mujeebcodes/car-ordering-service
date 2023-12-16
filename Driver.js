@@ -18,3 +18,5 @@ class Driver {
     console.log(`${this.name} rejects order ${order.id}`);
   }
 }
+
+module.exports = Driver;

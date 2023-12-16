@@ -14,11 +14,12 @@
       integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
       crossorigin="anonymous"
     ></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <title>Login to Ridely</title>
   </head>
   <body>
     <h3>Please login to your Ridely account</h3>
-    <form>
+    <form class="login-form">
       <div class="form-group">
         <label for="exampleInputEmail1">Email address</label>
         <input
@@ -36,5 +37,43 @@
     </form>
   </body>
   <script src="/socket.io/socket.io.js"></script>
-  <script src="script.js"></script>
+  <script>
+    const loginForm = document.querySelector(".login-form");
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const loginEmail = e.target[0].value;
+      try {
+        const response = await axios.post(
+          "/login",
+          { email: loginEmail },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("Server response:", response.data);
+
+        if (response.data.redirectToSignup) {
+          window.location.href = "/signup";
+          return;
+        }
+
+        if (response.data.redirectToDriver) {
+          // Redirect to driver page
+          window.location.href = "/driver";
+          return;
+        }
+        if (response.data.redirectToCustomer) {
+          // Redirect to customer page
+          window.location.href = "/customer";
+          return;
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    });
+  </script>
 </html>
