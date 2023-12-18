@@ -35,14 +35,16 @@ app.post("/login", async (req, res) => {
     console.log("User not found. Redirecting to signup.");
     return res.status(200).json({ success: false, redirectToSignup: true });
   }
-
   const token = await jwt.sign(
-    { email: emailFromForm },
+    {
+      email: emailFromForm,
+      name: existingCustomer ? existingCustomer.name : existingDriver.name,
+    },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
 
-  res.cookie("jwt", token, { httpOnly: true });
+  res.cookie("jwt", token, { httpOnly: true, path: "/" });
 
   if (existingDriver) {
     console.log("redirecting to driver dashboard");
@@ -104,6 +106,7 @@ app.get("/driver", (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.decodedToken = decoded;
+    console.log(decoded);
     res.sendFile(__dirname + "/public/driver.html");
   } catch (error) {
     return res.status(401).json({ success: false, msg: "Token is not valid" });
@@ -121,14 +124,27 @@ app.get("/customer", (req, res) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.decodedToken = decoded;
+    console.log(decoded);
+    res.header("Authorization", `Bearer ${token}`);
     res.sendFile(__dirname + "/public/customer.html");
   } catch (error) {
-    return res.status(401).json({ success: false, msg: "Token is not valid" });
+    return res.redirect("/login");
   }
 });
 
+const customerRoom = "customers";
+const driverRoom = "drivers";
+
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
+  socket.on("joinCustomerRoom", () => {
+    console.log(`${socket.id} joining the customer room`);
+    socket.join(customerRoom);
+  });
+
+  socket.on("joinDriverRoom", () => {
+    socket.join(driverRoom);
+  });
 });
 
 const PORT = process.env.PORT || 3000;
