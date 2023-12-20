@@ -10,6 +10,7 @@ const Customer = require("./Customer");
 const Driver = require("./Driver");
 const CustomerModel = require("./models/customer");
 const DriverModel = require("./models/driver");
+const AppService = require("./AppService");
 
 const server = http.createServer(app);
 const io = socketio(server);
@@ -44,7 +45,7 @@ app.post("/login", async (req, res) => {
     { expiresIn: "1h" }
   );
 
-  res.cookie("jwt", token, { httpOnly: true, path: "/" });
+  res.cookie("jwt", token, { httpOnly: true });
 
   if (existingDriver) {
     console.log("redirecting to driver dashboard");
@@ -74,7 +75,7 @@ app.post("/signup", async (req, res) => {
       const newCustomer = new Customer(name, email);
       console.log(newCustomer);
       await CustomerModel.create({
-        id: newCustomer.id,
+        _id: newCustomer.id,
         name: newCustomer.name,
         email: newCustomer.email,
       });
@@ -83,7 +84,7 @@ app.post("/signup", async (req, res) => {
       const newDriver = new Driver(name, email);
       console.log(newDriver);
       await DriverModel.create({
-        id: newDriver.id,
+        _id: newDriver.id,
         name: newDriver.name,
         email: newDriver.email,
         in_ride: newDriver.in_ride,
@@ -94,13 +95,18 @@ app.post("/signup", async (req, res) => {
   } catch (error) {}
 });
 
+app.get("/logout", (req, res) => {
+  res.cookie("jwt", "", { expires: new Date(0), httpOnly: true });
+
+  // Redirect or send a response as needed
+  res.redirect("/login"); //
+});
+
 app.get("/driver", (req, res) => {
   const token = req.cookies.jwt;
 
   if (!token) {
-    return res
-      .status(401)
-      .json({ success: false, msg: "No token, authorization denied" });
+    return res.redirect("/login");
   }
 
   try {
@@ -116,34 +122,50 @@ app.get("/customer", (req, res) => {
   const token = req.cookies.jwt;
 
   if (!token) {
-    return res
-      .status(401)
-      .json({ success: false, msg: "No token, authorization denied" });
+    return res.redirect("/login");
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.decodedToken = decoded;
     console.log(decoded);
-    res.header("Authorization", `Bearer ${token}`);
     res.sendFile(__dirname + "/public/customer.html");
   } catch (error) {
     return res.redirect("/login");
   }
 });
 
-const customerRoom = "customers";
-const driverRoom = "drivers";
+app.get("/customerData", async (req, res) => {
+  const token = req.cookies.jwt;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.decodedToken = decoded;
+    return res.status(200).json({ data: decoded });
+  } catch (error) {
+    console.log(error);
+  }
+});
+app.get("/driverData", (req, res) => {
+  const token = req.cookies.jwt;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.decodedToken = decoded;
+    return res.status(200).json({ data: decoded });
+  } catch (error) {
+    console.log(error);
+  }
+});
 
+// socket io
+
+const appService = new AppService();
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
-  socket.on("joinCustomerRoom", () => {
-    console.log(`${socket.id} joining the customer room`);
-    socket.join(customerRoom);
-  });
+  appService.joinSession(socket);
 
-  socket.on("joinDriverRoom", () => {
-    socket.join(driverRoom);
+  socket.on("rideRequested", (order) => {
+    console.log("Requesting order", order);
+    appService.requestOrder(order);
   });
 });
 
