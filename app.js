@@ -96,6 +96,7 @@ app.post("/signup", async (req, res) => {
 });
 
 app.get("/logout", (req, res) => {
+  console.log("signing out user");
   res.cookie("jwt", "", { expires: new Date(0), httpOnly: true });
 
   // Redirect or send a response as needed
