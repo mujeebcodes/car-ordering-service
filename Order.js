@@ -8,7 +8,7 @@ class Order {
     this.id = uuidv4();
     this.status = "pending";
     this.customer = customer;
-    this.driver = null;
+    this.driver_id = null;
   }
 
   assignDriver(driver) {

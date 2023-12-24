@@ -95,6 +95,7 @@ app.post("/signup", async (req, res) => {
   } catch (error) {}
 });
 
+app.get("/history", (req, res) => {});
 app.get("/logout", (req, res) => {
   console.log("signing out user");
   res.cookie("jwt", "", { expires: new Date(0), httpOnly: true });
@@ -116,7 +117,7 @@ app.get("/driver", (req, res) => {
     console.log(decoded);
     res.sendFile(__dirname + "/public/driver.html");
   } catch (error) {
-    return res.status(401).json({ success: false, msg: "Token is not valid" });
+    return res.redirect("/login");
   }
 });
 app.get("/customer", (req, res) => {
@@ -167,6 +168,16 @@ io.on("connection", (socket) => {
   socket.on("rideRequested", (order) => {
     console.log("Requesting order", order);
     appService.requestOrder(order);
+  });
+  socket.on("rideAccepted", (data) => {
+    const { order, driverEmail } = data;
+    console.log("Accepting order", data);
+    appService.acceptOrder(order, driverEmail);
+  });
+
+  socket.on("rideCompleted", (data) => {
+    const { order, email } = data;
+    appService.endRide(order, email);
   });
 });
 
