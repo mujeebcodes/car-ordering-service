@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "/login";
   });
   const { name } = customerDataResponse.data.data;
-  const socket = io("http://localhost:3000", {
+  const socket = io({
     query: {
       user_type: "customer",
       name: customerDataResponse.data.data.name,

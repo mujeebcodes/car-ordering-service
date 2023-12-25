@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "/login";
   });
 
-  const socket = io("http://localhost:3000", {
+  const socket = io({
     query: {
       user_type: "driver",
       name: driverDataResponse.data.data.name,
