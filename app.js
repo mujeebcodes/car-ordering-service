@@ -13,8 +13,15 @@ const DriverModel = require("./models/driver");
 const AppService = require("./AppService");
 const OrderModel = require("./models/order");
 
+const appService = new AppService();
 const server = http.createServer(app);
-const io = socketio(server);
+// const io = socketio(server);
+const io = new socketio.Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
 db.connect();
 
@@ -223,7 +230,6 @@ app.get("/driverData", (req, res) => {
 
 // socket io
 
-const appService = new AppService();
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
   appService.joinSession(socket);
