@@ -5,7 +5,7 @@ class Order {
     this.location = location;
     this.destination = destination;
     this.price = price;
-    this.id = uuidv4();
+    this._id = uuidv4();
     this.status = "pending";
     this.customer = customer;
     this.driver_id = null;

@@ -94,7 +94,7 @@ class AppService {
           });
         });
       }
-    }, 6000); // 1 minute timeout
+    }, 60000); // 1 minute timeout
 
     // Notify each available driver about the order
     for (const driver of availableDrivers) {
@@ -157,15 +157,15 @@ class AppService {
     const { _id, location, destination, price, status, driver_id } = order;
     console.log(driver);
     console.log(order);
-    // await OrderModel.create({
-    //   _id,
-    //   location,
-    //   destination,
-    //   price,
-    //   status,
-    //   customer_id: order.customer._id,
-    //   driver_id,
-    // });
+    await OrderModel.create({
+      _id,
+      location,
+      destination,
+      price,
+      status,
+      customer: order.customer._id,
+      driver: driver_id,
+    });
     const customerSocket = this.socketUserMap.get(order.customer._id);
     this.sendEvent({
       socket: customerSocket,

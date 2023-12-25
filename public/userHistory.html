@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+      crossorigin="anonymous"
+    />
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <title>Ride History</title>
+  </head>
+  <body>
+    <h1>Your past Rides</h1>
+    <div
+      style="border: 1px solid lightgray; min-height: 60vh"
+      id="orders_container"
+    ></div>
+  </body>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const orderContainer = document.querySelector("#orders_container");
+      const params = new URLSearchParams(window.location.search);
+      const email = params.get("userEmail");
+      try {
+        const response = await axios.get(`/historyData?email=${email}`);
+
+        const orderArray = response.data.data;
+        console.log(orderArray);
+
+        if (orderArray.length === 0) {
+          const noOrderDiv = document.createElement("div");
+          noOrderDiv.innerHTML = `<div class="card" style="width: 100%"><div class="card-body"<h5 class="card-title"><strong>No Rides yet. Ride with us soon?</strong></h5></div></div>`;
+          orderContainer.appendChild(noOrderDiv);
+        } else {
+          orderContainer.innerHTML = "";
+          orderArray.forEach((order) => {
+            const orderDiv = document.createElement("div");
+            orderDiv.innerHTML =
+              orderDiv.innerHTML = `<div class="card" style="width: 100%"><div class="card-body"<h5 class="card-title"><strong>Ride with ${
+                response.data.user_type === "customer"
+                  ? order.driver
+                  : order.customer
+              }</strong></h5><div><p>Location: ${
+                order.location
+              }</p><p>Destination: ${order.destination}</p><p>Price: ${
+                order.price
+              }</p></div></div></div>`;
+
+            orderContainer.appendChild(orderDiv);
+          });
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    });
+  </script>
+</html>

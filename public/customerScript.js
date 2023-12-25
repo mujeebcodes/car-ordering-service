@@ -1,5 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const notifContainer = document.querySelector("#notification-container");
+  const historyBtn = document.querySelector(".historyBtn");
+  const logoutBtn = document.querySelector(".logoutBtn");
   const requestBtn = document.getElementById("request-btn");
   let requestDiv;
   let customerDataResponse;
@@ -23,7 +25,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Error:", error);
   }
 
-  const logoutBtn = document.querySelector(".logoutBtn");
+  historyBtn.addEventListener("click", () => {
+    const userEmail = customerDataResponse.data.data.email;
+    window.location.href = `/history?userEmail=${userEmail}`;
+  });
   logoutBtn.addEventListener("click", () => {
     axios.get("/logout");
     window.location.href = "/login";

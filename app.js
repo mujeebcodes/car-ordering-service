@@ -11,6 +11,7 @@ const Driver = require("./Driver");
 const CustomerModel = require("./models/customer");
 const DriverModel = require("./models/driver");
 const AppService = require("./AppService");
+const OrderModel = require("./models/order");
 
 const server = http.createServer(app);
 const io = socketio(server);
@@ -95,7 +96,69 @@ app.post("/signup", async (req, res) => {
   } catch (error) {}
 });
 
-app.get("/history", (req, res) => {});
+app.get("/history", (req, res) => {
+  res.sendFile(__dirname + "/public/userHistory.html");
+});
+
+app.get("/historyData", async (req, res) => {
+  const token = req.cookies.jwt;
+  const userEmail = req.query.email;
+
+  if (!token) {
+    return res.redirect("/login");
+  }
+
+  const customer = await CustomerModel.findOne({ email: userEmail });
+  const driver = await DriverModel.findOne({ email: userEmail });
+
+  if (!customer && !driver) {
+    return res.status(404).json({ success: false, message: "Invalid user" });
+  }
+
+  let orders;
+
+  if (customer) {
+    orders = await OrderModel.find({ customer: customer._id });
+
+    if (orders) {
+      for (const order of orders) {
+        try {
+          const driver = await DriverModel.findById(order.driver);
+
+          if (driver) {
+            console.log("found driver");
+            order.driver = driver.name;
+          }
+        } catch (error) {
+          console.error("Error fetching driver:", error);
+        }
+      }
+    }
+    return res
+      .status(200)
+      .json({ success: true, user_type: "customer", data: orders });
+  } else {
+    orders = await OrderModel.find({ driver: driver._id });
+
+    if (orders) {
+      for (const order of orders) {
+        try {
+          const customer = await CustomerModel.findById(order.customer);
+
+          if (customer) {
+            order.customer = customer.name;
+          }
+        } catch (error) {
+          console.error("Error fetching customer:", error);
+        }
+      }
+    }
+    return res
+      .status(200)
+      .json({ success: true, user_type: "driver", data: orders });
+  }
+});
+
 app.get("/logout", (req, res) => {
   console.log("signing out user");
   res.cookie("jwt", "", { expires: new Date(0), httpOnly: true });

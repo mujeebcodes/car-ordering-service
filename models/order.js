@@ -6,8 +6,8 @@ const orderSchema = new mongoose.Schema({
   destination: { type: String, required: true, unique: true },
   price: { type: String, required: true },
   status: { type: String, required: true },
-  customer_id: { type: String, required: true },
-  driver_id: { type: String, required: true },
+  customer: { type: String, required: true },
+  driver: { type: String, required: true },
 });
 
 const OrderModel = mongoose.model("Order", orderSchema);
